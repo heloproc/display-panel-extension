@@ -68,12 +68,10 @@ export default class DisplayPanelExtension extends Extension {
 
         this._effect.set_shader_source(SHADER_SRC);
 
-        // Apply initial values from GSettings
         this._applyAllSettings();
 
         Main.uiGroup.add_effect(this._effect);
 
-        // Watch GSettings for changes (prefs window / gsettings CLI)
         this._settingsSignals = [
             this._settings.connect('changed::brightness',   () => this._updateUniform('brightness',   this._settings.get_double('brightness'))),
             this._settings.connect('changed::contrast',     () => this._updateUniform('contrast',     this._settings.get_double('contrast'))),
@@ -82,7 +80,6 @@ export default class DisplayPanelExtension extends Extension {
             this._settings.connect('changed::temperature',  () => this._updateUniform('temperature',  this._settings.get_double('temperature'))),
         ];
 
-        // DBus — still works for your external frontend app
         this._dbusImpl = Gio.DBusExportedObject.wrapJSObject(DBusInterface, this);
         this._dbusImpl.export(Gio.DBus.session, '/org/gnome/Shell/Extensions/DisplayPanel');
     }
@@ -103,7 +100,6 @@ export default class DisplayPanelExtension extends Extension {
         this._effect.set_uniform_value(name, gval);
     }
 
-    // DBus methods — also persist to GSettings so prefs window stays in sync
     SetContrast(val)     { this._settings.set_double('contrast',     val); }
     SetBrightness(val)   { this._settings.set_double('brightness',   val); }
     SetSaturation(val)   { this._settings.set_double('saturation',   val); }
