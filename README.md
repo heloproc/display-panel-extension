@@ -23,7 +23,7 @@ Settings are saved automatically and restored on login. You can also control eve
 
 ## Requirements
 
-- GNOME Shell **45, 46, 47, or 48**
+GNOME Shell **45, 46, 47, or 48**
 
 ---
 
@@ -50,7 +50,7 @@ gnome-extensions enable display-panel@alien
 
 ## Usage
 
-Open **GNOME Extensions** app or go to **Settings → Extensions → Custom Color Manager** and click the gear icon to open the preferences panel.
+Open **GNOME Extensions** app or go to **Settings → Extensions → Display Manager** and click the gear icon to open the preferences panel.
 
 All sliders update the display live. A small tick mark on each slider shows the default value — double-click to reset a single slider, or use the **Reset All** button at the bottom.
 
