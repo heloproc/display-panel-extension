@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist>
+  <schema id="org.gnome.shell.extensions.display-panel"
+          path="/org/gnome/shell/extensions/display-panel/">
+
+    <key name="brightness" type="d">
+      <default>0.0</default>
+      <range min="-0.5" max="0.5"/>
+      <summary>Brightness</summary>
+      <description>Screen brightness offset. 0.0 is default.</description>
+    </key>
+
+    <key name="contrast" type="d">
+      <default>1.0</default>
+      <range min="0.5" max="2.0"/>
+      <summary>Contrast</summary>
+      <description>Screen contrast multiplier. 1.0 is default.</description>
+    </key>
+
+    <key name="saturation" type="d">
+      <default>1.0</default>
+      <range min="0.0" max="2.0"/>
+      <summary>Saturation</summary>
+      <description>Color saturation multiplier. 1.0 is default.</description>
+    </key>
+
+    <key name="hue" type="d">
+      <default>0.0</default>
+      <range min="-0.5" max="0.5"/>
+      <summary>Hue</summary>
+      <description>Hue rotation offset. 0.0 is default.</description>
+    </key>
+
+    <key name="temperature" type="d">
+      <default>0.0</default>
+      <range min="-1.0" max="1.0"/>
+      <summary>Color Temperature</summary>
+      <description>Color temperature offset. Negative = cooler, positive = warmer.</description>
+    </key>
+
+  </schema>
+</schemalist>
