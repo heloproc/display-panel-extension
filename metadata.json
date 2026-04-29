@@ -3,6 +3,6 @@
   "description": "Hardware-accelerated compositor extension for the Display Panel for Wayland GNOME.",
   "uuid": "display-panel@alien",
   "settings-schema": "org.gnome.shell.extensions.display-panel",
-  "shell-version": ["45", "46", "47", "48"],
+  "shell-version": ["45", "46", "47", "48", "49", "50"],
   "url": "https://github.com/heloproc/display-panel-extension"
 }
