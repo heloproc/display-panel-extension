@@ -41,17 +41,24 @@ vec3 hsv2rgb(vec3 c) {
 void main(void) {
     vec4 color = cogl_color_in * texture2D(tex, cogl_tex_coord_in[0].st);
 
-    color.rgb = (color.rgb - 0.5) * contrast + 0.5 + brightness;
+    if (color.a > 0.0) {
+        vec3 rgb = color.rgb / color.a; // Un-premultiply
 
-    vec3 hsv = rgb2hsv(color.rgb);
-    hsv.x = fract(hsv.x + hue);
-    hsv.y = hsv.y * saturation;
-    color.rgb = hsv2rgb(hsv);
+        rgb = (rgb - 0.5) * contrast + 0.5 + brightness;
 
-    color.r = color.r * (1.0 + temperature);
-    color.b = color.b * (1.0 - temperature);
+        vec3 hsv = rgb2hsv(rgb);
+        hsv.x = fract(hsv.x + hue);
+        hsv.y = hsv.y * saturation;
+        rgb = hsv2rgb(hsv);
 
-    color.rgb = clamp(color.rgb, 0.0, 1.0);
+        rgb.r = rgb.r * (1.0 + temperature);
+        rgb.b = rgb.b * (1.0 - temperature);
+
+        rgb = clamp(rgb, 0.0, 1.0);
+
+        color.rgb = rgb * color.a; // Re-premultiply
+    }
+
     cogl_color_out = color;
 }
 `;
@@ -67,18 +74,26 @@ export default class DisplayPanelExtension extends Extension {
         }
 
         this._effect.set_shader_source(SHADER_SRC);
-
         this._applyAllSettings();
 
         Main.uiGroup.add_effect(this._effect);
 
-        this._settingsSignals = [
-            this._settings.connect('changed::brightness',   () => this._updateUniform('brightness',   this._settings.get_double('brightness'))),
-            this._settings.connect('changed::contrast',     () => this._updateUniform('contrast',     this._settings.get_double('contrast'))),
-            this._settings.connect('changed::saturation',   () => this._updateUniform('saturation',   this._settings.get_double('saturation'))),
-            this._settings.connect('changed::hue',          () => this._updateUniform('hue',          this._settings.get_double('hue'))),
-            this._settings.connect('changed::temperature',  () => this._updateUniform('temperature',  this._settings.get_double('temperature'))),
-        ];
+        if (Main.screenshotUI) {
+            this._effect.set_enabled(!Main.screenshotUI.visible);
+
+            this._screenshotVisibleId = Main.screenshotUI.connect('notify::visible', () => {
+                this._effect.set_enabled(!Main.screenshotUI.visible);
+            });
+        }
+
+        this._settings.connectObject(
+            'changed::brightness',   () => this._updateUniform('brightness',   this._settings.get_double('brightness')),
+            'changed::contrast',     () => this._updateUniform('contrast',     this._settings.get_double('contrast')),
+            'changed::saturation',   () => this._updateUniform('saturation',   this._settings.get_double('saturation')),
+            'changed::hue',          () => this._updateUniform('hue',          this._settings.get_double('hue')),
+            'changed::temperature',  () => this._updateUniform('temperature',  this._settings.get_double('temperature')),
+            this
+        );
 
         this._dbusImpl = Gio.DBusExportedObject.wrapJSObject(DBusInterface, this);
         this._dbusImpl.export(Gio.DBus.session, '/org/gnome/Shell/Extensions/DisplayPanel');
@@ -107,18 +122,18 @@ export default class DisplayPanelExtension extends Extension {
     SetTemperature(val)  { this._settings.set_double('temperature',  val); }
 
     disable() {
-        if (this._settingsSignals) {
-            for (const id of this._settingsSignals)
-                this._settings.disconnect(id);
-            this._settingsSignals = null;
+        if (this._screenshotVisibleId && Main.screenshotUI) {
+            Main.screenshotUI.disconnect(this._screenshotVisibleId);
+            this._screenshotVisibleId = null;
         }
 
-        this._settings = null;
+        if (this._settings) {
+            this._settings.disconnectObject(this);
+            this._settings = null;
+        }
 
         if (this._effect) {
             Main.uiGroup.remove_effect(this._effect);
-            if (typeof this._effect.destroy === 'function')
-                this._effect.destroy();
             this._effect = null;
         }
 
