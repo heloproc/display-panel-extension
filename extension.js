@@ -39,27 +39,37 @@ vec3 hsv2rgb(vec3 c) {
 }
 
 void main(void) {
-    vec4 color = cogl_color_in * texture2D(tex, cogl_tex_coord_in[0].st);
+    vec4 color = texture2D(tex, cogl_tex_coord_in[0].st);
 
     if (color.a > 0.0) {
         vec3 rgb = color.rgb / color.a; // Un-premultiply
 
-        rgb = (rgb - 0.5) * contrast + 0.5 + brightness;
+        // 1. Backlight offset
+        rgb = rgb + brightness;
 
-        vec3 hsv = rgb2hsv(rgb);
-        hsv.x = fract(hsv.x + hue);
-        hsv.y = hsv.y * saturation;
-        rgb = hsv2rgb(hsv);
+        // 2. Hardware Display Contrast (Gain scaling from black)
+        rgb = rgb * contrast;
 
-        rgb.r = rgb.r * (1.0 + temperature);
-        rgb.b = rgb.b * (1.0 - temperature);
+        // 3. Perceptual Saturation (ITU-R BT.709)
+        float luma = dot(rgb, vec3(0.2126, 0.7152, 0.0722));
+        rgb = mix(vec3(luma), rgb, saturation);
+
+        // 4. Color Temperature
+        rgb.r *= (1.0 + temperature);
+        rgb.b *= (1.0 - temperature);
+
+        // 5. Hue Rotation
+        if (abs(hue) > 0.001) {
+            vec3 hsv = rgb2hsv(rgb);
+            hsv.x = fract(hsv.x + hue);
+            rgb = hsv2rgb(hsv);
+        }
 
         rgb = clamp(rgb, 0.0, 1.0);
-
         color.rgb = rgb * color.a; // Re-premultiply
     }
 
-    cogl_color_out = color;
+    cogl_color_out = color * cogl_color_in;
 }
 `;
 
