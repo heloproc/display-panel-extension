@@ -12,12 +12,14 @@ export default class DisplayPanelPreferences extends ExtensionPreferences {
         window.set_default_size(600, 500);
         window.search_enabled = false;
 
+        // ── Page ────────────────────────────────────────────────────────────
         const page = new Adw.PreferencesPage({
             title: _('Display'),
             icon_name: 'preferences-desktop-display-symbolic',
         });
         window.add(page);
 
+        // ── Color group ─────────────────────────────────────────────────────
         const colorGroup = new Adw.PreferencesGroup({
             title: _('Color Adjustments'),
             description: _('Fine-tune how colors appear on your screen'),
@@ -51,7 +53,7 @@ export default class DisplayPanelPreferences extends ExtensionPreferences {
             v => `${Math.round(v * 100)}%`,
         ));
 
-        // White balance 
+        // ── White balance group ──────────────────────────────────────────────
         const wbGroup = new Adw.PreferencesGroup({
             title: _('White Balance'),
             description: _('Adjust color temperature and hue shift'),
@@ -81,6 +83,7 @@ export default class DisplayPanelPreferences extends ExtensionPreferences {
             v => `${v >= 0 ? '+' : ''}${Math.round(v * 100)}`,
         ));
 
+        // ── Reset group ──────────────────────────────────────────────────────
         const resetGroup = new Adw.PreferencesGroup();
         page.add(resetGroup);
 
@@ -122,7 +125,7 @@ export default class DisplayPanelPreferences extends ExtensionPreferences {
     _makeSliderRow(settings, key, title, subtitle, min, max, defaultVal, steps, fmt) {
         const row = new Adw.ActionRow({ title, subtitle });
 
-        // Values
+        // Value label
         const valueLabel = new Gtk.Label({
             label: fmt(settings.get_double(key)),
             valign: Gtk.Align.CENTER,
@@ -147,17 +150,20 @@ export default class DisplayPanelPreferences extends ExtensionPreferences {
             width_request: 200,
         });
 
-       scale.add_mark(defaultVal, Gtk.PositionType.BOTTOM, null);
+        // Default position mark
+        scale.add_mark(defaultVal, Gtk.PositionType.BOTTOM, null);
 
-         scale.connect('value-changed', () => {
+        // Sync slider → settings + label
+        scale.connect('value-changed', () => {
             const v = scale.get_value();
             settings.set_double(key, v);
             valueLabel.label = fmt(v);
         });
 
+        // Sync settings → slider (e.g. when Reset is clicked)
         settings.connect(`changed::${key}`, () => {
             const v = settings.get_double(key);
-            
+            // Block re-entrancy
             GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
                 scale.set_value(v);
                 valueLabel.label = fmt(v);
