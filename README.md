@@ -23,7 +23,7 @@ Settings are saved automatically and restored on login. You can also control eve
 
 ## Requirements
 
-GNOME Shell **45, 46, 47, 48, 49, 50 or 51**
+GNOME Shell **45, 46, 47, 48, 49 or 50**
 
 > [!NOTE]
 >Tested on GNOME 46, 48 & 50 (Debian & Fedora)
